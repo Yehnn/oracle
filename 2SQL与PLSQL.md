@@ -16,7 +16,7 @@
 
 `SQL` 是 `Structured Query Language` 的首字母缩写，意为结构化查询语言，它可以告诉 Oracle 对哪些信息进行选择，插入，更新和删除。相信大家已经很熟悉，在 mysql 和 sqlserver 中我们也经常使用。
 
-`PL/SQL` 是 Oracle 对 SQL 的过程化语言扩展，是一种便携式，高性能的事务处理语言。它将 SQL 的数据操作能力与过程语言的处理能力结合起来。（更多有关 PL/SQL 介绍可参考[官方文档](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/lnpls/overview.html#GUID-17166AA4-14DC-48A6-BE92-3FC758DAA940) ）
+`PL/SQL` 是 Oracle 对 SQL 的过程化语言扩展，是一种便携式，高性能的事务处理语言。它有变量和流程控制等概念，将 SQL 的数据操作能力与过程语言的处理能力结合起来。（更多有关 PL/SQL 介绍可参考[官方文档](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/lnpls/overview.html#GUID-17166AA4-14DC-48A6-BE92-3FC758DAA940) ）
 
 ## SQL
 
@@ -134,7 +134,7 @@ INSERT INTO sc VALUES(1002, 4, 80);
 commit;
 ```
 
-### 查询
+### 简单查询
 
 
 查询年龄在 20-50 岁的学生：
@@ -184,7 +184,7 @@ SQL> select * from student where s_age between 20 and 50;
 
 例如，我们也可以通过 `AND` 查找年龄在 `20~50` 岁的学生。
 
-```bash
+```sql
 SQL> SELECT * FROM student WHERE s_age>=20 AND s_age<=50;
 ```
 除了上述所列举的运算符和表达式之外，我们还可以进行一些数学的计算操作，例如加减乘除等，如下示例，我们将 `student` 表中的 `s_id` 和 `s_age` 分别进行加减乘除操作。
@@ -221,11 +221,11 @@ SQL> SELECT * FROM student WHERE s_name LIKE '%2';
 
 ### 函数
 
-#### MAX 和 MIN
+#### MAX，MIN
 
 查找列的最大值和最小值。例如查找学生表中的年龄的最大值和最小值：
 
-```bash
+```sql
 SQL> SELECT max(s_age),min(s_age) FROM student;
 
 MAX(S_AGE) MIN(S_AGE)
@@ -233,13 +233,13 @@ MAX(S_AGE) MIN(S_AGE)
         40         10
 ```
 
-#### SUM 及 AVG
+#### SUM，AVG
 
 `SUM` 和 `AVG` 分别可以用来求和以及求平均值。
 
 例如，查找选课表中，`s_id=1001` 学生成绩的总分及平均值：
 
-```bash
+```sql
 SQL> SELECT avg(grade),sum(grade) FROM sc WHERE s_id='1001';
 
 AVG(GRADE) SUM(GRADE)
@@ -249,7 +249,7 @@ AVG(GRADE) SUM(GRADE)
 
 除此之外，我们还可以使用 `DISTINCT` 修饰符指定从结果集中删除重复的行，对应的是 `ALL` ，为默认项。通过如下示例来了解：
 
-```bash
+```sql
 SQL> SELECT grade FROM sc;
 
      GRADE
@@ -284,7 +284,7 @@ SQL> SELECT DISTINCT grade FROM sc;
 
 例如，我们统计选课表中 `s_id=1001` 有多少条记录，就可以使用 `count`
 
-```
+```sql
 SQL> SELECT count(s_id) FROM sc WHERE s_id=1001;
 
 COUNT(S_ID)
@@ -304,7 +304,7 @@ CONCAT(char1,char2);
 
 例如：把 `student` 表中 `s_id=1001` 对应的 `s_name` 和 `s_sex` 字段连接。
 
-```bash
+```sql
 SQL> SELECT CONCAT(CONCAT(s_name,'''s sex is '),s_sex) "sex" FROM student WHERE s_id=1001;
 sex
 -------------------------------------------------------------------
@@ -313,7 +313,7 @@ shiyanlou1001's sex is man
 
 想了解更多有关函数的内容可以参考 [SQL 函数](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/sqlrf/COUNT.html#GUID-AEF08B79-024D-4E3A-B362-9715FB011776)
 
-## 分组排序
+### 分组排序
 
 关于分组我们会学习到 `SELECT` 的两个子句，分别为：
 
@@ -322,275 +322,603 @@ shiyanlou1001's sex is man
 
 详细的语法格式对于初学者来说并不友好，下面我们通过实例来讲解相关的内容。
 
-### GROUP BY
+#### GROUP BY
 
-分组(`GROUP BY`) 功能，有时也称聚合，一些函数可以对分组数据进行操作，例如我们上述所列的 `AVG` `SUM` 都有相关的功能，不过我们并未使用分组，所以默认使用所有的数据进行操作。首先我们描述聚合的使用方法：
-
-```bash
-[GROUP BY {col_name | expr | position} [ASC | DESC], ...]
-```
-
-如上所述，分组的标准可以为以下三种：
-
-- 字段名(`col_name`)
-- 表达式(`expr`)
-- 位置(`position`)。
+分组(`GROUP BY`) 功能，有时也称聚合，一些函数可以对分组数据进行操作，例如我们上述所列的 `AVG` `SUM` 都有相关的功能，不过我们并未使用分组，所以默认使用所有的数据进行操作。
 
 我们可以选择上面的一种进行分组，也可以重复多个，或者综合使用。
 
-例如，我们根据字段名 `s_id` 进行分组：
+例一：我们根据字段名 `s_id` 进行分组并计数：
 
-```bash
-mysql> SELECT * FROM sc GROUP BY s_id;
-+------+------+-------+
-| s_id | c_id | grade |
-+------+------+-------+
-| 1001 |    1 |    20 |
-| 1002 |    1 |   100 |
-| 1003 |    3 |    75 |
-+------+------+-------+
+```sql
+SQL> SELECT s_id,count(*) FROM sc GROUP BY s_id;
+
+      S_ID   COUNT(*)
+---------- ----------
+      1001          3
+      1002          3
+      1003          1
 ```
 
-如上所示，我们根据学生 id ，即 `s_id` 进行分组后，我们便只能查看到不同学生的第一条数据，不会有重复的 `s_id` 记录显示，我们可以尝试去掉 `GROUP BY` 字句做对比。
+例二：根据 `s_id` 进行分组后查询学生的总成绩，使用 `SUM` 函数：
 
-但是这样查询出来的数据意义不大，所以我们经常会搭配使用一些能够对一组数据进行操作的函数，例如，我们根据 `s_id` 进行分组后查询学生的总成绩，使用 `SUM` 函数：
+```sql
+SQL> SELECT s_id,sum(grade) FROM sc GROUP BY s_id;
 
-```bash
-mysql> SELECT s_id,sum(grade) FROM sc GROUP BY s_id;
-+------+------------+
-| s_id | sum(grade) |
-+------+------------+
-| 1001 |        186 |
-| 1002 |        260 |
-| 1003 |         75 |
-+------+------------+
+      S_ID SUM(GRADE)
+---------- ----------
+      1003         75
+      1001        186
+      1002        260
 ```
 
-除此之外，我们还可以使用 `ASC` 或者 `DESC` 描述符来指定升序或者降序显示结果集，`ASC` 是默认选项，我们以 `DESC` 做如下示例：
+另外我们可以使用多个列进行分组。下面我们使用 `s_id` 以及 `grade` 进行分组。
 
-```bash
-mysql> SELECT s_id,sum(grade) FROM sc GROUP BY s_id DESC;
-+------+------------+
-| s_id | sum(grade) |
-+------+------------+
-| 1003 |         75 |
-| 1002 |        260 |
-| 1001 |        186 |
-+------+------------+
+```sql
+SQL> SELECT s_id,grade, sum(grade) FROM sc GROUP BY s_id,grade;
+
+      S_ID      GRADE SUM(GRADE)
+---------- ---------- ----------
+      1002        100        100
+      1003         75         75
+      1001         70         70
+      1001         96         96
+      1002         80        160
+      1001         20         20
+
+已选择 6 行。
 ```
 
-上面是使用 `col_name` 的方式，这里我们还可以使用表达式的方式，更明确的指定筛选的条件：
+#### HAVING
 
-```bash
-mysql> SELECT sum(grade) FROM sc GROUP BY s_id=1001;
-+------------+
-| sum(grade) |
-+------------+
-|        335 |
-|        186 |
-+------------+
+除了可以对数据进行分组之外，我们还可以使用 `HAVING` 对分组数据进行过滤。
+
+例如：从选课表中筛选出选课总成绩大于 `100` 分的学生。
+
+```sql
+SQL> SELECT s_id, sum(grade) FROM sc GROUP BY s_id HAVING sum(grade)>100;
+
+      S_ID SUM(GRADE)
+---------- ----------
+      1001        186
+      1002        260
 ```
 
-如上所示的使用表达式的方式，第一行数据代表 `s_id` 不等于 `1001` 的成绩之和，第二行代表 `s_id` 等于 `1001` 的成绩之和。
+#### ORDER BY
 
-最后一种使用位置参数的方式，这里的位置参数代表的是要查询字段的位置，如下所示，`1` 对应 `c_id`。
+`ORDER BY` 用于对数据进行排序。
 
-```bash
-mysql> SELECT c_id,sum(grade) FROM sc GROUP BY 1;
-+------+------------+
-| c_id | sum(grade) |
-+------+------------+
-|    1 |        120 |
-|    2 |         80 |
-|    3 |        145 |
-|    4 |        176 |
-+------+------------+
+下面我们举一个综合示例：将选课表 `sc` 的数据根据 `s_id` 进行分组，并计算每组总成绩，然后筛选出 `总成绩>100` 的分组，输出结果根据总成绩进行降序排列。
+
+```sql
+SQL> SELECT s_id,sum(grade) AS sum_grade FROM sc GROUP BY s_id HAVING sum(grade)>100 ORDER BY sum(grade) DESC;
+
+      S_ID  SUM_GRADE
+---------- ----------
+      1002        260
+      1001        186
 ```
 
-另外，我们还可以多个组合在一起使用，对于我们的选课表 `sc` 而言，如果使用 `s_id` 以及 `c_id` 进行分组，则得到的是所有的数据，因为我们使用 `s_id` 以及 `c_id` 作为主键，所以因此不会有相同的一组值可以进行分组，得到的是全部的数据。
+> `AS` 是命别名的意思，可以省略。
+>
+> `DESC` 代表降序排列。省略的话则是升序排列。 
 
-如语法中所示，多个一起使用时使用 `逗号` 进行分隔。这里我们使用 `s_id` 以及 `grade` 一起作为分组的标准,如下所示：
+### 限制返回的行数
 
-```bash
-mysql> SELECT s_id, c_id, grade, sum(grade) FROM sc GROUP BY s_id,grade;
-+------+------+-------+------------+
-| s_id | c_id | grade | sum(grade) |
-+------+------+-------+------------+
-| 1001 |    1 |    20 |         20 |
-| 1001 |    3 |    70 |         70 |
-| 1001 |    4 |    96 |         96 |
-| 1002 |    2 |    80 |        160 |
-| 1002 |    1 |   100 |        100 |
-| 1003 |    3 |    75 |         75 |
-+------+------+-------+------------+
+`ROWNUM` 用来限制查询返回的行数，这是一个伪列，给结果集的每一行编了一个顺序号。和 `mysql` 中的 `limit` 作用类似。
+
+例：查询 `student` 表中的前两行。
+
+```sql
+SQL> SELECT * FROM student where rownum<3;
+
+      S_ID S_NAME               S_SEX                     S_AGE
+---------- -------------------- -------------------- ----------
+      1001 shiyanlou1001        man                          10
+      1002 shiyanlou1002        woman                        20
 ```
 
-### HAVING
+> 注意：并不能使用使用类似如下两种语句：
+>
+> ```sql
+> select * from student where rownum>2;
+> select * from student where rownum>2 and rownum<5;
+> ```
 
-除了可以对数据进行分组之外，我们还可以对分组数据进行过滤，使用 `HAVING` 子句，`HAVING` 跟 `WHERE` 的用法类似。两者在大多数时候都能起到相同的作用，如下示例
+### 子查询
 
-```bash
-mysql> SELECT * FROM student HAVING s_id=1001;
-+------+---------------+-------+-------+
-| s_id | s_name        | s_sex | s_age |
-+------+---------------+-------+-------+
-| 1001 | shiyanlou1001 | man   |    10 |
-+------+---------------+-------+-------+
-1 row in set (0.00 sec)
-
-mysql> SELECT * FROM student WHERE s_id=1001;
-+------+---------------+-------+-------+
-| s_id | s_name        | s_sex | s_age |
-+------+---------------+-------+-------+
-| 1001 | shiyanlou1001 | man   |    10 |
-+------+---------------+-------+-------+
-1 row in set (0.00 sec)
-```
-
-但是对于 `HAVING` 和 `WHERE` 来讲，`HAVING` 可以引用 `SUM AVG` 等函数，而 `WHERE` 则不能，即 `HAVING` 一般针对 `分组`，而 `WHERE` 针对的是 `行`。**即便很多时候两者都能起到同样的作用，你也不应该混用他们。**
-
-如下示例，我们从选课表中筛选出选课总成绩大于 `100` 分的学生：
-
-```bash
-mysql> SELECT s_id, sum(grade) FROM sc GROUP BY s_id HAVING sum(grade)>100;
-+------+------------+
-| s_id | sum(grade) |
-+------+------------+
-| 1001 |        186 |
-| 1002 |        260 |
-+------+------------+
-```
-
-### ORDER BY
-
-`ORDER BY` 用于对数据进行排序，使用方式跟 `GROUP BY` 一样：
-
-```bash
-[ORDER BY {col_name | expr | position} [ASC | DESC], ...]
-```
-
-这里我们可以将上述的查询语法，分组，以及排序综合起来，如下所示：
-
-```bash
-SELECT  [ALL | DISTINCT]
-col_name[,col_name...] FROM tbl_name [WHERE where_condition]
-[GROUP BY {col_name | expr | position} [ASC | DESC], ...]
-[HAVING where_condition]
-[ORDER BY {col_name | expr | position} [ASC | DESC], ...]
-```
-
-上面的示例有一些复杂，部分子句并不是必须项，不过我们可以大致总结出 `SELECT` 子句的使用顺序，如下：
-
-```bash
-SELECT
-FROM
-WHERE
-GROUP BY
-HAVING
-ORDER BY
-```
-
-下面我们来综合示例，例如，我们将选课表 `sc` 的数据根据 `s_id` 进行分组，获得 `s_id` 以及对应的总成绩 `sum(grade)` 列，并给 `sum(grade)` 取一个别名为 `sum_grade`，然后筛选出 `sum_grade >100` 的分组，并且根据 `sum_grade` 进行降序排序，如下：
-
-```bash
-mysql> SELECT s_id,sum(grade) AS sum_grade FROM sc GROUP BY s_id HAVING sum_grade>100 ORDER BY sum_grade DESC;
-+------+-----------+
-| s_id | sum_grade |
-+------+-----------+
-| 1002 |       260 |
-| 1001 |       186 |
-+------+-----------+
-```
-
-由于在选课表中，我们的数据并不够多，使用不同的分组方式和排序方式显示的结果并不够直观，但是对于了解分组和排序的操作来说已经足够，同学们可以自己运用前面学习的插入操作，插入更多的数据，来进行分组和排序的练习。
-
-### LIMIT
-
-最后，我们还可以对返回的结果集进行限制，使用 `LIMIT` 。
-
-`LIMIT` 可以使用一个或者两个非负的整数作为参数，他们的区别如下：
-
-```bash
-LIMIT 2   代表返回结果集的前 2 行
-LIMIT 2,3  代表从第三行开始（因为下标从 0 开始，所以这里的 2 代表第三行），返回接下来的三行内容，即 3,4,5 行。
-```
-
-如下示例：
-
-```bash
-mysql> SELECT * FROM student LIMIT 2;
-+------+---------------+-------+-------+
-| s_id | s_name        | s_sex | s_age |
-+------+---------------+-------+-------+
-| 1001 | shiyanlou1001 | man   |    10 |
-| 1002 | shiyanlou1002 | woman |    20 |
-+------+---------------+-------+-------+
-2 rows in set (0.00 sec)
-
-mysql> SELECT * FROM student LIMIT 2,3;
-+------+---------------+-------+-------+
-| s_id | s_name        | s_sex | s_age |
-+------+---------------+-------+-------+
-| 1003 | shiyanlou1003 | man   |    18 |
-| 1004 | shiyanlou1005 | woman |    40 |
-| 1005 | shiyanlou1005 | man   |    17 |
-+------+---------------+-------+-------+
-```
-
-## 子查询
-
-在上面的内容中，关于查询的语法已经足够复杂，虽然对于完整的内容来说还稍显不足，但是，为了不再增加该语句的复杂性，这里，我们不再给出语法结构，而是讲解示例。
-
-子查询又被称为嵌套查询，如下示例：
+子查询又被称为**嵌套查询**，如下示例：
 
 我们要查询选修了课程的课程号 `c_id` 为 `1` 的学生的年龄：
 
 1. 首先我们需要从选课表`sc` 中查询，选修课程号 `c_id` 为 `1` 的学生的学号：
 
-```bash
-mysql> SELECT s_id FROM sc WHERE c_id=1;
-+------+
-| s_id |
-+------+
-| 1001 |
-| 1002 |
-+------+
+```sql
+SQL> SELECT s_id FROM sc WHERE c_id=1;
+
+      S_ID
+----------
+      1001
+      1002
 ```
 
 2. 接着我们可以使用获得的学生号去查询年龄字段，从而得到最终的结果:
 
-```bash
-mysql> SELECT s_id,s_age FROM student WHERE s_id IN (1001,1002);
-+------+-------+
-| s_id | s_age |
-+------+-------+
-| 1001 |    10 |
-| 1002 |    20 |
-+------+-------+
+```sql
+SQL> SELECT s_id,s_age FROM student WHERE s_id IN (1001,1002);
+
+      S_ID      S_AGE
+---------- ----------
+      1001         10
+      1002         20
 ```
 
 上面的查询过程分为两步，而使用子查询我们只需要一步，如下：
 
-```bash
-mysql> SELECT s_id,s_age FROM student WHERE s_id IN (SELECT s_id FROM sc WHERE c_id=1);
-+------+-------+
-| s_id | s_age |
-+------+-------+
-| 1001 |    10 |
-| 1002 |    20 |
-+------+-------+
+```sql
+SQL> SELECT s_id,s_age FROM student WHERE s_id IN (SELECT s_id FROM sc WHERE c_id=1);
+
+      S_ID      S_AGE
+---------- ----------
+      1001         10
+      1002         20
 ```
 
 即将第一步的查询嵌入第二步的操作中，并且将第一步查询的结果用于第二步查询的判断条件中。
 
-类似的操作还有很多，下面我给出一个使用子查询的例子，大家可以分析其代表的含义，并且考虑有没有更简单的实现方式:
+类似的操作还有很多，下面给出一个使用子查询的例子，大家可以分析其代表的含义，并且考虑有没有更简单的实现方式：
 
-```bash
+```sql
 SELECT  * FROM student WHERE s_id IN (SELECT s_id FROM sc WHERE c_id=(SELECT c_id FROM course WHERE c_time=(SELECT max(c_time) FROM course)));
 ```
-## PLSQL 
+### 表的连接
 
-http://study.163.com/course/introduction.htm?courseId=1543006#/courseDetail?tab=1
+表的连接主要用于多表查询，我们先来看将所有示例表存储在一张表中会是什么样子。
+
+| 学号   | 课程号  | 学生姓名         | 学生年龄 | 学生性别 | 课程名   | 课时   | 成绩   |
+| ---- | ---- | ------------ | ---- | ---- | ----- | ---- | ---- |
+| 1001 | 3    | shiyanlou001 | 10   | man  | c     | 10   | 70   |
+| 1001 | 1    | shiyanlou001 | 10   | man  | java  | 13   | 20   |
+| 1001 | 2    | shiyanlou001 | 4    | man  | spark | 15   | 90   |
+| ...  | ...  | ...          | ...  | ...  | ...   | ...  |      |
+
+大致如上所示，这里我只给出了简单的几条数据，对比将选课的信息，划分为三张表进行存储，我们不用存储更多重复的信息，明显后者要高效的多。
+
+**表的连接基于关系表，可以用来关联多个表。**
+
+我们可以使用语句实现这个三表关联的操作：
+
+```sql
+SQL> SELECT sc.s_id,sc.c_id,s_name,c_name,grade,s_age,s_sex,c_time FROM student,course,sc WHERE student.s_id=sc.s_id AND course.c_id=sc.c_id;
+```
+
+> 执行过后的显示可能会有点乱，可以使用如下命令先调整显示格式，再执行
+>
+> ```sql
+> SQL> col s_name for a20;
+> SQL> col c_name for a15;
+> SQL> set linesize 500;
+> ```
+
+让我们简化一些，只从每张表中列出其它表中关键的信息，如下所示，我们可以得到学生比较直观的选课信息：
+
+```sql
+SQL> SELECT sc.s_id, sc.c_id, s_name, c_name, grade FROM student, course, sc WHERE student.s_id=sc.s_id AND course.c_id=sc.c_id;
+
+      S_ID       C_ID S_NAME          C_NAME          GRADE
+---------- ---------- --------------- ---------- ----------
+      1001          3 shiyanlou1001   c                  70
+      1001          1 shiyanlou1001   java               20
+      1001          4 shiyanlou1001   spark              96
+      1002          1 shiyanlou1002   java              100
+      1002          2 shiyanlou1002   python             80
+      1002          4 shiyanlou1002   spark              80
+      1003          3 shiyanlou1003   c                  75
+
+已选择 7 行。
+```
+#### 笛卡尔积连接
+
+**笛卡儿积连接**又叫**交叉连接** ，是多个表之间无条件的连接，它所查询出来的结果数量是每个表的记录数量的乘积，所以查询结果非常之大，在实际中要避免笛卡尔积连接。
+
+下面对 `student` 表和 `course` 表进行笛卡尔积连接：
+
+```sql
+SQL> select * from student,sc;
+或者
+SQL> select * from student cross join sc;
+-- 查询结果数量
+SQL> select count(*) from student,sc;
+```
+
+从输出结果可以看到一共有 35 条记录，是两表记录数量的乘积。
+
+我们可以对其指定连接条件来避免此种情况：
+
+```sql
+SQL> select * from student,sc where student.s_id=sc.s_id;
+```
+
+> 注意：积依然存在，只是不显示了。
+
+#### 内连接
+
+内连接（有时称为简单连接）是两个或多个表的连接，它们只返回满足连接条件的那些行。使用  `INNER JOIN .... ON` 。
+
+例：将 `sc` 表和 `student` 表内连接：
+
+```sql
+SQL> SELECT sc.s_id, sc.c_id, s.s_name, sc.grade FROM sc INNER JOIN student s ON s.s_id=sc.s_id;
+
+      S_ID       C_ID S_NAME               GRADE
+---------- ---------- --------------- ----------
+      1001          3 shiyanlou1001           70
+      1001          1 shiyanlou1001           20
+      1002          1 shiyanlou1002          100
+      1001          4 shiyanlou1001           96
+      1002          2 shiyanlou1002           80
+      1003          3 shiyanlou1003           75
+      1002          4 shiyanlou1002           80
+
+已选择 7 行。
+```
+
+> `inner` 可省略。
+
+也可以使用 `using` 来连接：
+
+```sql
+SQL> SELECT s_id, sc.c_id, s.s_name, sc.grade FROM sc JOIN student s using(s_id);
+```
+
+#### 外连接
+
+外连接扩展了内连接的结果，将某个连接表中不符合连接条件的记录加入结果集中。外连接分为左外连接、右外连接、全外连接三种。
+
+##### 左外连接
+
+使用 `LEFT JOIN` 。会返回 `LEFT JOIN` 左边表查询的所有行，如果 `JOIN` 右边的表没有相匹配的行，会返回空。 
+
+```sql
+SQL> SELECT student.s_id,s_name,c_id,grade FROM student LEFT JOIN sc ON student.s_id=sc.s_id;
+
+      S_ID S_NAME                C_ID      GRADE
+---------- --------------- ---------- ----------
+      1001 shiyanlou1001            3         70
+      1001 shiyanlou1001            1         20
+      1002 shiyanlou1002            1        100
+      1001 shiyanlou1001            4         96
+      1002 shiyanlou1002            2         80
+      1003 shiyanlou1003            3         75
+      1002 shiyanlou1002            4         80
+      1004 shiyanlou1004
+      1005 shiyanlou1005
+
+已选择 9 行。
+```
+
+##### 右外连接
+
+使用 `RIGHT JOIN` 。会返回 `RIGHT JOIN` 右边表查询的所有行，如果 `JOIN` 左边的表没有相匹配的行，会返回空。 
+
+```sql
+SQL> SELECT student.s_id,s_name,c_id,grade FROM student RIGHT JOIN sc ON student.s_id=sc.s_id;
+
+      S_ID S_NAME                C_ID      GRADE
+---------- --------------- ---------- ----------
+      1001 shiyanlou1001            3         70
+      1001 shiyanlou1001            1         20
+      1001 shiyanlou1001            4         96
+      1002 shiyanlou1002            1        100
+      1002 shiyanlou1002            2         80
+      1002 shiyanlou1002            4         80
+      1003 shiyanlou1003            3         75
+
+已选择 7 行。
+```
+
+##### 全外连接
+
+使用 `FULL JOIN` ，会返回两表所有行，如果不满足连接条件，会返回空值。
+
+```sql
+SQL> SELECT student.s_id,s_name,c_id,grade FROM student FULL JOIN sc ON student.s_id=sc.s_id;
+
+      S_ID S_NAME                C_ID      GRADE
+---------- --------------- ---------- ----------
+      1001 shiyanlou1001            3         70
+      1001 shiyanlou1001            1         20
+      1002 shiyanlou1002            1        100
+      1001 shiyanlou1001            4         96
+      1002 shiyanlou1002            2         80
+      1003 shiyanlou1003            3         75
+      1002 shiyanlou1002            4         80
+      1004 shiyanlou1004
+      1005 shiyanlou1005
+
+已选择 9 行。
+```
+
+#### 自然连接
+
+自然连接会自动根据两个表中相同数据类型，相同名称的列进行连接。使用 `NATURAL JOIN` 。
+
+```sql
+SQL> SELECT * FROM course NATURAL JOIN sc;
+
+      C_ID C_NAME         C_TIME       S_ID      GRADE
+---------- ---------- ---------- ---------- ----------
+         3 c                  10       1001         70
+         1 java               13       1001         20
+         1 java               13       1002        100
+         4 spark              15       1001         96
+         2 python             12       1002         80
+         3 c                  10       1003         75
+         4 spark              15       1002         80
+
+已选择 7 行。
+```
+
+和下面的内连接语句输出结果一样：
+
+```sql
+SQL> select * from course inner join sc on course.c_id=sc.c_id;
+```
+
+向了解更多有关表连接的内容可以参考 [表的连接](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/sqlrf/Joins.html#GUID-39081984-8D38-4D64-A847-AA43F515D460)
+
+### 视图
+
+在上面的内容中，我们通过使用联结来获取相关的信息。如果我们需要经常使用上述查询的内容，可以通过定义视图来实现。
+
+视图（View）是从一个或多个表（这里的表指基本表和视图）导出的表。为了区分视图和表，所以表有时又被称为“基本表”。
+
+对于视图来说，数据库中只保存有视图的定义，而通过视图获得的数据，都来自与它相关的基本表，视图本身是没有数据的。因此，如果我们对视图的数据进行操作，其实也就是对基本表的数据进行操作，而这种操作也是有一定的限制。
+
+#### 创建视图
+
+创建视图使用 `CREATE VIEW` 。例如我们创建一个包含三张表内容的视图 `all_info` 。
+
+```sql
+SQL> CREATE VIEW all_info AS SELECT sc.s_id,sc.c_id,s_name,c_name,grade,s_age,s_sex,c_time FROM student,course,sc WHERE student.s_id=sc.s_id AND course.c_id=sc.c_id;
+```
+
+查看 `all_info` 视图结构以及内容：
+
+```sql
+SQL> desc all_info;
+SQL> select * from all_info;
+```
+
+创建好了过后我们可以在数据字典 `user_views` 看到它：
+
+```sql
+SQL> select view_name from user_views where view_name='ALL_INFO';
+
+VIEW_NAME
+----------------------
+ALL_INFO
+```
+
+想了解更多有关创建视图的内容可参考 [创建视图](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/sqlrf/CREATE-VIEW.html#GUID-61D2D2B4-DACC-4C7C-89EB-7E50D9594D30)
+
+创建好了这个视图过后，我们可以利用在表中查询数据的操作来对视图内容进行查询。例如查询视图中成绩大于 80 的学生：
+
+```sql
+SQL> select * from all_info where grade>80;
+```
+
+#### 删除视图
+
+删除视图使用 `DROP VIEW` 。如下所示，删除视图 `all_info` 。
+
+```sql
+SQL> drop view all_info;
+```
+
+## PL/SQL 
+
+http://study.163.com/course/introduction.htm?courseId=1543006#/courseDetail?tab=1 章节16
+
+### 语法结构
+
+PL/SQL 的结构通常如下：
+
+```plsql
+DECLARE      --声明部分。例如定义常量，变量，引用的函数或过程等。
+BEGIN        --执行部分。包含变量赋值，过程控制等。
+EXCEPTION    --处理异常。包含错误处理语句。
+END;         --结束部分。
+/            /*添加这个斜杠来执行 PL/SQL 语句块。*/
+```
+
+> 上面 `--` 后面和 `/* */` 包围的内容都是注释。这是 PL/SQL 的两种注释方式。
+
+### 预热
+
+我们先来做几个简单实践大致了解 PL/SQL。
+
+例一：输出 `Hello World` 。为了方便，后文所述内容除使用 `$` 特别标识外，均在 `SQL` 命令行输入。
+
+```plsql
+SET SERVEROUTPUT ON;   --默认输出显示是关闭的，需要首先打开才会显示
+BEGIN
+  DBMS_OUTPUT.put_line('Hello World');
+END;
+/
+```
+
+输出结果如下：
+
+```
+PL/SQL 过程已成功完成。
+Hello World
+```
+
+例二：声明一个变量并使用。该语句实现输出 `my name is : syl`  。
+
+```plsql
+DECLARE
+  v_name varchar2(20); --定义变量
+BEGIN
+  v_name := 'syl';  --为变量赋值
+  DBMS_OUTPUT.put_line('my name is : ' || v_name);
+END;
+/
+```
+
+> 注意：PL/SQL 中字符串连接用 `||` 。
+
+例三：从键盘输入学生编号（比如输入 `1001` ），查询出对应的学生姓名。输出 `student's name is : shiyanlou1001` 。
+
+```plsql
+DECLARE
+  v_sid NUMBER;            --接收学生编号
+  v_sname VARCHAR2(20);    --接收学生姓名
+BEGIN
+  v_sid := &studentid;     --键盘输入数据
+  SELECT s_name INTO v_sname FROM student WHERE s_id=v_sid; --把查询出来的值赋给变量 v_sname
+  DBMS_OUTPUT.put_line('student''s name is : ' || v_sname);
+END;
+/
+```
+
+经过上面的实践，相信大家已经对 PL/SQL 有了一个大概的了解。接下来我们正式进入详细的 PL/SQL 学习。
+
+### 变量的声明与赋值
+
+
+
+- 变量的声明与使用
+- `%TYPE` 的使用
+- `%ROWTYPE` 的使用
+
+#### 变量的声明
+
+声明为指定数据类型的值分配存储空间，并命名存储位置以便引用它。
+
+必须先声明对象，然后才能引用它们。声明可以出现在任何块，子程序或包的声明部分。
+
+（此段引用自 [PLSQL 声明-官方文档](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/lnpls/plsql-language-fundamentals.html#GUID-65F9E0D0-03CD-4C40-829A-7392ACE8F932) ）
+
+声明的语法：
+
+```plsql
+DECLARE
+	变量名称 [CONSTANT] 类型 [NOT NULL] [:=value];
+```
+
+> - 变量名称必须遵守如下规定：
+>   - 由`字母`，`数字`，`_`，`$` ，`#` 组成。
+>   - 以字母开头，不能是 Oracle 中的关键字
+>   - 变量的长度最多为 30 个字符。
+> - `CONSTANT` 是声明常量。
+> - `:=value` 是设置默认值。
+
+例如：如下的变量名是不符合规定的。
+
+```plsql
+me&you
+2user
+on/off
+student id
+select
+```
+
+例一：声明一个名叫 `v_syl` 的变量。
+
+```plsql
+DECLARE
+	v_syl VARCHAR2(20);
+BEGIN
+	NULL;
+END;
+/
+```
+
+例二：声明有默认值的变量。下列程序实现计算 v_a 和 v_b 的和。
+
+```plsql
+DECLARE
+  v_a NUMBER :=1;
+  v_b NUMBER; 
+BEGIN
+  v_B := 2;
+  DBMS_OUTPUT.put_line(v_A+v_B);
+END;
+/
+```
+
+> 可以发现不区分大小写。
+
+例三：声明一个不为空的变量。
+
+```plsql
+DECLARE
+  v_sid NUMBER NOT NULL := 1;
+BEGIN
+  NULL;
+END;
+/
+```
+
+> 注意：声明不为空的话，一定要设置默认值。不然会报错 `PLS-00218: 声明为 NOT NULL 的变量必须有初始化赋值` 。
+
+除了可以声明变量，还可以声明常量。常量的初始值是其永久值。如下示例声明了两个常量。
+
+```plsql
+DECLARE
+  v_num CONSTANT NUMBER := 1;
+  v_bool CONSTANT BOOLEAN := FALSE;
+BEGIN
+  NULL;
+END;
+/
+```
+
+#### 使用 %TYPE 属性声明
+
+有时候我们想要声明与之前声明的变量或指定数据表中的某列相同数据类型的数据项，但是我们并不知道之前声明的变量的类型，这个时候就可以使用 `%TYPE` 。引用项目会继承如下内容：
+
+- 数据类型和大小。
+- 约束。
+
+注意：
+
+- 引用项目不会继承初始值。
+- 如果被引用项目的声明发生变化，则引用项目的声明会相应地改变。
+
+语法：
+
+```
+引用项目名称 被引用项目名称%TYPE;
+```
+
+例：我们改写之前根据学生编号查询学生姓名的代码。让变量 `v_sid` 和 `v_sname` 分别引用表 `student` 的 `s_id` 和 `s_name` 的数据类型。
+
+```plsql
+DECLARE
+  v_sid student.s_id%TYPE;            --接收学生编号
+  v_sname student.s_name%TYPE;    --接收学生姓名
+BEGIN
+  v_sid := &studentid;     --键盘输入数据
+  SELECT s_name INTO v_sname FROM student WHERE s_id=v_sid; --把查询出来的值赋给变量 v_sname
+  DBMS_OUTPUT.put_line('student''s name is : ' || v_sname);
+END;
+/
+```
+
+输入学生编号 `1001` 依然可以查询出对应的姓名。
+
+#### 使用 %ROWTYPE 属性声明
+
+
+
+
+
+
+
+
 
 
 
