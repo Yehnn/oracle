@@ -1,4 +1,4 @@
-# SQL 与 PL/SQL
+# SQL
 
 ## 实验介绍
 
@@ -12,15 +12,13 @@
 + SQL 简介
 + 安装 MySQL
 
-## SQL 和 PL/SQL 简介
+## SQL 简介
 
 `SQL` 是 `Structured Query Language` 的首字母缩写，意为结构化查询语言，它可以告诉 Oracle 对哪些信息进行选择，插入，更新和删除。相信大家已经很熟悉，在 mysql 和 sqlserver 中我们也经常使用。
 
-`PL/SQL` 是 Oracle 对 SQL 的过程化语言扩展，是一种便携式，高性能的事务处理语言。它有变量和流程控制等概念，将 SQL 的数据操作能力与过程语言的处理能力结合起来。（更多有关 PL/SQL 介绍可参考[官方文档](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/lnpls/overview.html#GUID-17166AA4-14DC-48A6-BE92-3FC758DAA940) ）
-
 ## SQL
 
-### 创建示例表
+## 创建示例表
 
 首先，试着用前面学到的内容创建如下 3 个示例表：
 
@@ -134,7 +132,7 @@ INSERT INTO sc VALUES(1002, 4, 80);
 commit;
 ```
 
-### 简单查询
+## 简单查询
 
 
 查询年龄在 20-50 岁的学生：
@@ -180,7 +178,6 @@ SQL> select * from student where s_age between 20 and 50;
 | `OR, ||`  | 或    |
 | `AND, &&` | 与    |
 | `NOT, !`  | 非    |
-| `XOR`     | 异或   |
 
 例如，我们也可以通过 `AND` 查找年龄在 `20~50` 岁的学生。
 
@@ -201,7 +198,7 @@ SQL> SELECT s_id,s_age,s_id+s_age,s_id-s_age,s_id*s_age,s_id/s_age FROM student;
       1005         17       1022        988      17085 59.1176471
 ```
 
-### 通配符
+## 通配符
 
 在上述内容中，我们有提到 `LIKE`，它是一个字符串比较函数，用于 `LIKE` 的通配符有两个：
 
@@ -219,9 +216,9 @@ SQL> SELECT * FROM student WHERE s_name LIKE '%2';
       1002 shiyanlou1002        woman                        20
 ```
 
-### 函数
+## 函数
 
-#### MAX，MIN
+### MAX，MIN
 
 查找列的最大值和最小值。例如查找学生表中的年龄的最大值和最小值：
 
@@ -233,7 +230,7 @@ MAX(S_AGE) MIN(S_AGE)
         40         10
 ```
 
-#### SUM，AVG
+### SUM，AVG
 
 `SUM` 和 `AVG` 分别可以用来求和以及求平均值。
 
@@ -278,7 +275,7 @@ SQL> SELECT DISTINCT grade FROM sc;
 已选择 6 行。
 ```
 
-#### COUNT
+### COUNT
 
 `COUNT` 函数用于计数。
 
@@ -292,7 +289,7 @@ COUNT(S_ID)
           3
 ```
 
-#### CONCAT
+### CONCAT
 
 `CONCAT` 是一个字符串函数。用于连接字符串。语法如下：
 
@@ -313,7 +310,7 @@ shiyanlou1001's sex is man
 
 想了解更多有关函数的内容可以参考 [SQL 函数](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/sqlrf/COUNT.html#GUID-AEF08B79-024D-4E3A-B362-9715FB011776)
 
-### 分组排序
+## 分组排序
 
 关于分组我们会学习到 `SELECT` 的两个子句，分别为：
 
@@ -322,7 +319,7 @@ shiyanlou1001's sex is man
 
 详细的语法格式对于初学者来说并不友好，下面我们通过实例来讲解相关的内容。
 
-#### GROUP BY
+### GROUP BY
 
 分组(`GROUP BY`) 功能，有时也称聚合，一些函数可以对分组数据进行操作，例如我们上述所列的 `AVG` `SUM` 都有相关的功能，不过我们并未使用分组，所以默认使用所有的数据进行操作。
 
@@ -369,7 +366,7 @@ SQL> SELECT s_id,grade, sum(grade) FROM sc GROUP BY s_id,grade;
 已选择 6 行。
 ```
 
-#### HAVING
+### HAVING
 
 除了可以对数据进行分组之外，我们还可以使用 `HAVING` 对分组数据进行过滤。
 
@@ -384,7 +381,7 @@ SQL> SELECT s_id, sum(grade) FROM sc GROUP BY s_id HAVING sum(grade)>100;
       1002        260
 ```
 
-#### ORDER BY
+### ORDER BY
 
 `ORDER BY` 用于对数据进行排序。
 
@@ -403,7 +400,7 @@ SQL> SELECT s_id,sum(grade) AS sum_grade FROM sc GROUP BY s_id HAVING sum(grade)
 >
 > `DESC` 代表降序排列。省略的话则是升序排列。 
 
-### 限制返回的行数
+## 限制返回的行数
 
 `ROWNUM` 用来限制查询返回的行数，这是一个伪列，给结果集的每一行编了一个顺序号。和 `mysql` 中的 `limit` 作用类似。
 
@@ -425,7 +422,7 @@ SQL> SELECT * FROM student where rownum<3;
 > select * from student where rownum>2 and rownum<5;
 > ```
 
-### 子查询
+## 子查询
 
 子查询又被称为**嵌套查询**，如下示例：
 
@@ -471,7 +468,7 @@ SQL> SELECT s_id,s_age FROM student WHERE s_id IN (SELECT s_id FROM sc WHERE c_i
 ```sql
 SELECT  * FROM student WHERE s_id IN (SELECT s_id FROM sc WHERE c_id=(SELECT c_id FROM course WHERE c_time=(SELECT max(c_time) FROM course)));
 ```
-### 表的连接
+## 表的连接
 
 表的连接主要用于多表查询，我们先来看将所有示例表存储在一张表中会是什么样子。
 
@@ -517,7 +514,7 @@ SQL> SELECT sc.s_id, sc.c_id, s_name, c_name, grade FROM student, course, sc WHE
 
 已选择 7 行。
 ```
-#### 笛卡尔积连接
+### 笛卡尔积连接
 
 **笛卡儿积连接**又叫**交叉连接** ，是多个表之间无条件的连接，它所查询出来的结果数量是每个表的记录数量的乘积，所以查询结果非常之大，在实际中要避免笛卡尔积连接。
 
@@ -541,7 +538,7 @@ SQL> select * from student,sc where student.s_id=sc.s_id;
 
 > 注意：积依然存在，只是不显示了。
 
-#### 内连接
+### 内连接
 
 内连接（有时称为简单连接）是两个或多个表的连接，它们只返回满足连接条件的那些行。使用  `INNER JOIN .... ON` 。
 
@@ -571,11 +568,11 @@ SQL> SELECT sc.s_id, sc.c_id, s.s_name, sc.grade FROM sc INNER JOIN student s ON
 SQL> SELECT s_id, sc.c_id, s.s_name, sc.grade FROM sc JOIN student s using(s_id);
 ```
 
-#### 外连接
+### 外连接
 
 外连接扩展了内连接的结果，将某个连接表中不符合连接条件的记录加入结果集中。外连接分为左外连接、右外连接、全外连接三种。
 
-##### 左外连接
+#### 左外连接
 
 使用 `LEFT JOIN` 。会返回 `LEFT JOIN` 左边表查询的所有行，如果 `JOIN` 右边的表没有相匹配的行，会返回空。 
 
@@ -597,7 +594,7 @@ SQL> SELECT student.s_id,s_name,c_id,grade FROM student LEFT JOIN sc ON student.
 已选择 9 行。
 ```
 
-##### 右外连接
+#### 右外连接
 
 使用 `RIGHT JOIN` 。会返回 `RIGHT JOIN` 右边表查询的所有行，如果 `JOIN` 左边的表没有相匹配的行，会返回空。 
 
@@ -617,7 +614,7 @@ SQL> SELECT student.s_id,s_name,c_id,grade FROM student RIGHT JOIN sc ON student
 已选择 7 行。
 ```
 
-##### 全外连接
+#### 全外连接
 
 使用 `FULL JOIN` ，会返回两表所有行，如果不满足连接条件，会返回空值。
 
@@ -639,7 +636,7 @@ SQL> SELECT student.s_id,s_name,c_id,grade FROM student FULL JOIN sc ON student.
 已选择 9 行。
 ```
 
-#### 自然连接
+### 自然连接
 
 自然连接会自动根据两个表中相同数据类型，相同名称的列进行连接。使用 `NATURAL JOIN` 。
 
@@ -667,7 +664,7 @@ SQL> select * from course inner join sc on course.c_id=sc.c_id;
 
 向了解更多有关表连接的内容可以参考 [表的连接](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/sqlrf/Joins.html#GUID-39081984-8D38-4D64-A847-AA43F515D460)
 
-### 视图
+## 视图
 
 在上面的内容中，我们通过使用联结来获取相关的信息。如果我们需要经常使用上述查询的内容，可以通过定义视图来实现。
 
@@ -675,7 +672,7 @@ SQL> select * from course inner join sc on course.c_id=sc.c_id;
 
 对于视图来说，数据库中只保存有视图的定义，而通过视图获得的数据，都来自与它相关的基本表，视图本身是没有数据的。因此，如果我们对视图的数据进行操作，其实也就是对基本表的数据进行操作，而这种操作也是有一定的限制。
 
-#### 创建视图
+### 创建视图
 
 创建视图使用 `CREATE VIEW` 。例如我们创建一个包含三张表内容的视图 `all_info` 。
 
@@ -708,7 +705,7 @@ ALL_INFO
 SQL> select * from all_info where grade>80;
 ```
 
-#### 删除视图
+### 删除视图
 
 删除视图使用 `DROP VIEW` 。如下所示，删除视图 `all_info` 。
 
@@ -720,197 +717,7 @@ SQL> drop view all_info;
 
 http://study.163.com/course/introduction.htm?courseId=1543006#/courseDetail?tab=1 章节16
 
-### 语法结构
 
-PL/SQL 的结构通常如下：
-
-```plsql
-DECLARE      --声明部分。例如定义常量，变量，引用的函数或过程等。
-BEGIN        --执行部分。包含变量赋值，过程控制等。
-EXCEPTION    --处理异常。包含错误处理语句。
-END;         --结束部分。
-/            /*添加这个斜杠来执行 PL/SQL 语句块。*/
-```
-
-> 上面 `--` 后面和 `/* */` 包围的内容都是注释。这是 PL/SQL 的两种注释方式。
-
-### 预热
-
-我们先来做几个简单实践大致了解 PL/SQL。
-
-例一：输出 `Hello World` 。为了方便，后文所述内容除使用 `$` 特别标识外，均在 `SQL` 命令行输入。
-
-```plsql
-SET SERVEROUTPUT ON;   --默认输出显示是关闭的，需要首先打开才会显示
-BEGIN
-  DBMS_OUTPUT.put_line('Hello World');
-END;
-/
-```
-
-输出结果如下：
-
-```
-PL/SQL 过程已成功完成。
-Hello World
-```
-
-例二：声明一个变量并使用。该语句实现输出 `my name is : syl`  。
-
-```plsql
-DECLARE
-  v_name varchar2(20); --定义变量
-BEGIN
-  v_name := 'syl';  --为变量赋值
-  DBMS_OUTPUT.put_line('my name is : ' || v_name);
-END;
-/
-```
-
-> 注意：PL/SQL 中字符串连接用 `||` 。
-
-例三：从键盘输入学生编号（比如输入 `1001` ），查询出对应的学生姓名。输出 `student's name is : shiyanlou1001` 。
-
-```plsql
-DECLARE
-  v_sid NUMBER;            --接收学生编号
-  v_sname VARCHAR2(20);    --接收学生姓名
-BEGIN
-  v_sid := &studentid;     --键盘输入数据
-  SELECT s_name INTO v_sname FROM student WHERE s_id=v_sid; --把查询出来的值赋给变量 v_sname
-  DBMS_OUTPUT.put_line('student''s name is : ' || v_sname);
-END;
-/
-```
-
-经过上面的实践，相信大家已经对 PL/SQL 有了一个大概的了解。接下来我们正式进入详细的 PL/SQL 学习。
-
-### 变量的声明与赋值
-
-
-
-- 变量的声明与使用
-- `%TYPE` 的使用
-- `%ROWTYPE` 的使用
-
-#### 变量的声明
-
-声明为指定数据类型的值分配存储空间，并命名存储位置以便引用它。
-
-必须先声明对象，然后才能引用它们。声明可以出现在任何块，子程序或包的声明部分。
-
-（此段引用自 [PLSQL 声明-官方文档](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/lnpls/plsql-language-fundamentals.html#GUID-65F9E0D0-03CD-4C40-829A-7392ACE8F932) ）
-
-声明的语法：
-
-```plsql
-DECLARE
-	变量名称 [CONSTANT] 类型 [NOT NULL] [:=value];
-```
-
-> - 变量名称必须遵守如下规定：
->   - 由`字母`，`数字`，`_`，`$` ，`#` 组成。
->   - 以字母开头，不能是 Oracle 中的关键字
->   - 变量的长度最多为 30 个字符。
-> - `CONSTANT` 是声明常量。
-> - `:=value` 是设置默认值。
-
-例如：如下的变量名是不符合规定的。
-
-```plsql
-me&you
-2user
-on/off
-student id
-select
-```
-
-例一：声明一个名叫 `v_syl` 的变量。
-
-```plsql
-DECLARE
-	v_syl VARCHAR2(20);
-BEGIN
-	NULL;
-END;
-/
-```
-
-例二：声明有默认值的变量。下列程序实现计算 v_a 和 v_b 的和。
-
-```plsql
-DECLARE
-  v_a NUMBER :=1;
-  v_b NUMBER; 
-BEGIN
-  v_B := 2;
-  DBMS_OUTPUT.put_line(v_A+v_B);
-END;
-/
-```
-
-> 可以发现不区分大小写。
-
-例三：声明一个不为空的变量。
-
-```plsql
-DECLARE
-  v_sid NUMBER NOT NULL := 1;
-BEGIN
-  NULL;
-END;
-/
-```
-
-> 注意：声明不为空的话，一定要设置默认值。不然会报错 `PLS-00218: 声明为 NOT NULL 的变量必须有初始化赋值` 。
-
-除了可以声明变量，还可以声明常量。常量的初始值是其永久值。如下示例声明了两个常量。
-
-```plsql
-DECLARE
-  v_num CONSTANT NUMBER := 1;
-  v_bool CONSTANT BOOLEAN := FALSE;
-BEGIN
-  NULL;
-END;
-/
-```
-
-#### 使用 %TYPE 属性声明
-
-有时候我们想要声明与之前声明的变量或指定数据表中的某列相同数据类型的数据项，但是我们并不知道之前声明的变量的类型，这个时候就可以使用 `%TYPE` 。引用项目会继承如下内容：
-
-- 数据类型和大小。
-- 约束。
-
-注意：
-
-- 引用项目不会继承初始值。
-- 如果被引用项目的声明发生变化，则引用项目的声明会相应地改变。
-
-语法：
-
-```
-引用项目名称 被引用项目名称%TYPE;
-```
-
-例：我们改写之前根据学生编号查询学生姓名的代码。让变量 `v_sid` 和 `v_sname` 分别引用表 `student` 的 `s_id` 和 `s_name` 的数据类型。
-
-```plsql
-DECLARE
-  v_sid student.s_id%TYPE;            --接收学生编号
-  v_sname student.s_name%TYPE;    --接收学生姓名
-BEGIN
-  v_sid := &studentid;     --键盘输入数据
-  SELECT s_name INTO v_sname FROM student WHERE s_id=v_sid; --把查询出来的值赋给变量 v_sname
-  DBMS_OUTPUT.put_line('student''s name is : ' || v_sname);
-END;
-/
-```
-
-输入学生编号 `1001` 依然可以查询出对应的姓名。
-
-#### 使用 %ROWTYPE 属性声明
 
 
 
