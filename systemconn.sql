@@ -873,4 +873,186 @@ select name,value from v$spparameter where name='nls_language';
 select * from v$nls_parameters;
 select userenv('language') from dual;
 
---启动关闭实例
+desc v$parameter;
+select * from v$parameter;
+select name,value from v$parameter;
+select name,value from v$spparameter;
+show parameters;
+select p.value in_effect,s.value in_file from v$parameter p join v$spparameter s on p.name=s.name where p.name='allow_global_dblinks';
+alter system set allow_global_dblinks=TRUE scope=memory;
+select p.value in_effect,s.value in_file from v$parameter p join v$spparameter s on p.name=s.name where p.name='processes';
+alter system set processes=400;
+alter system set processes=400 scope=spfile;
+alter system reset processes;
+alter system set processes=300 scope=spfile;
+select * from v$parameter where name='approx_for_aggregation';
+
+select name,value,isses_modifiable from v$parameter where isses_modifiable='TRUE';
+show parameter approx_for_aggregation;
+alter session set approx_for_aggregation=TRUE;
+alter session set approx_for_aggregation=FALSE;
+
+--启动，关闭实例
+startup;
+select * from v$spparameter where name='control_files';
+
+--警报日志
+select name,value from v$spparameter where name='diagnostic_dest';
+--ddl log
+select name,value from v$parameter where name='enable_ddl_logging';
+alter system set enable_ddl_logging=TRUE;
+
+--动态性能视图
+select t.name,d.name,d.bytes from v$tablespace t join v$datafile d on t.ts#=d.ts# order by t.name;
+select t.tablespace_name,d.file_name,d.bytes from dba_tablespaces t join dba_data_files d on t.tablespace_name=d.tablespace_name order by tablespace_name;
+select m.group#,m.member,g.bytes from v$log g join v$logfile m on m.group#=g.group# order by m.group#,m.member;
+select owner,object_name,object_type from dba_objects where object_name like 'V%PARAMETER';
+
+select tablespace_name from dba_tablespaces;
+select name from v$tablespace;
+select * from v$controlfile;
+select value from v$parameter where name ='control_files';
+--查看动态性能视图有哪些
+select * from v$fixed_table where name like 'V$%';
+select * from v$fixed_table order by name;
+
+--用户管理
+-创建用户
+create user syl identified by shiyanlou;
+select username,created from dba_users where lower(username)='syl';
+select default_tablespace,temporary_tablespace from dba_users where username='SYL';
+select property_name,property_value from database_properties where property_name like '%TABLESPACE%';
+select tablespace_name,bytes,max_bytes from dba_ts_quotas;
+select * from dba_users where username='SYL';
+select * from dba_tablespaces;
+select t.name,d.name,d.bytes/1024/1024 "BYTES(M)" from v$tablespace t join v$datafile d on t.ts#=d.ts# order by t.name;
+
+create user syl2 identified externally
+default tablespace SYLTP1
+quota 1m on SYLTP1
+TEMPORARY TABLESPACE TMP_SP1
+PROFILE default;
+select * from dba_users where username='SYL2';
+select * from dba_profiles order by profile;
+CREATE PROFILE new_profile
+  LIMIT PASSWORD_REUSE_MAX 10
+        PASSWORD_REUSE_TIME 30;
+drop profile new_profile cascade;
+
+--修改
+alter user syl identified by newsyl;
+alter user syl default tablespace SYLTP1;
+--删除
+drop user syl2 cascade;
+
+
+--权限管理
+grant create session to syl;
+select * from dba_sys_privs where grantee='SYL';
+/*grant create session,alter session,create table,create view,create synonym,
+create cluster,create database link,create sequence,create trigger,create type,create procedure,create operator to syl;
+*/
+--系统权限
+grant all privileges to syl;
+grant create session to syl with admin option;
+--对象权限
+select * from tab;
+grant select on system.student to syl;
+select * from dba_tab_privs where grantee='SYL';
+
+--撤销权限
+revoke all privileges from syl;
+revoke select on system.student from syl;
+
+select * from v$pwfile_users;
+
+--角色管理
+select * from student;
+select * from sc;
+select * from course;
+
+create role user_sc;
+grant create session to user_sc;
+grant select on system.student to user_sc;
+grant select on system.sc to user_sc;
+grant select on system.course to user_sc;
+
+create role admin_sc;
+grant user_sc to admin_sc;
+grant select on system.student to admin_sc;
+grant delete on system.student to admin_sc;
+grant insert on system.student to admin_sc;
+grant update on system.student to admin_sc;
+grant select on system.sc to admin_sc;
+grant delete on system.sc to admin_sc;
+grant insert on system.sc to admin_sc;
+grant update on system.sc to admin_sc;
+grant select on system.course to admin_sc;
+grant delete on system.course to admin_sc;
+grant insert on system.course to admin_sc;
+grant update on system.course to admin_sc;
+
+/*create role user_sc;
+grant select on system.student to admin_sc;
+grant select on system.sc to admin_sc;
+grant select on system.course to admin_sc;
+*/
+
+create role super_sc;
+grant admin_sc to super_sc;
+grant create any table,drop any table to super_sc;
+grant all on system.student to super_sc;
+grant all on system.sc to super_sc;
+grant all on system.course to super_sc;
+
+select granted_role,default_role from dba_role_privs where grantee='SYSTEM';
+
+select * from dba_users;
+select * from dba_roles;
+--设置角色
+/*drop user syl_stu1 cascade;
+drop user syl_stu2 cascade;
+drop user syl_admin cascade;
+drop user syl_super cascade;
+*/
+
+create user syl_stu1 identified by sylstu1;
+create user syl_stu2 identified by sylstu2;
+create user syl_admin identified by syladmin;
+create user syl_super identified by sylsuper;
+select * from dba_users order by created desc;
+
+grant user_sc to syl_stu1;
+grant user_sc,admin_sc to syl_stu2;
+grant admin_sc to syl_admin;
+grant super_sc to syl_super;
+--select * from dba_sys_privs;
+select * from dba_role_privs;
+
+conn syl_stu2/sylstu2;
+set role user_sc;
+
+conn system/Syl12345
+alter role user_sc identified by usersc;
+alter role super_sc identified by supersc;
+alter role super_sc not identified;
+
+grant insert on system.student to user_sc;
+--select * from dba_role_privs where granted_role='USER_SC';
+select * from dba_sys_privs where grantee='USER_SC';
+select * from dba_tab_privs where grantee='USER_SC';
+
+revoke insert on system.student from user_sc;
+drop role super_sc;
+select * from dba_roles where role='SUPER_SC';
+
+--概要文件
+create profile pwd_time 
+	limit failed_login_attempts 3   --限制连续错误次数
+		password_lock_time 1;       --限制锁定账户天数
+select distinct profile from dba_profiles;
+
+alter profile pwd_time limit sessions_per_user 100;
+select * from dba_profiles where profile='PWD_TIME' and resource_name='SESSIONS_PER_USER';
+drop profile pwd_time cascade;
+

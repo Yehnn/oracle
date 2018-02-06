@@ -713,16 +713,6 @@ SQL> select * from all_info where grade>80;
 SQL> drop view all_info;
 ```
 
-## PL/SQL 
-
-http://study.163.com/course/introduction.htm?courseId=1543006#/courseDetail?tab=1 章节16
-
-
-
-
-
-
-
 
 
 
