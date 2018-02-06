@@ -1056,3 +1056,154 @@ alter profile pwd_time limit sessions_per_user 100;
 select * from dba_profiles where profile='PWD_TIME' and resource_name='SESSIONS_PER_USER';
 drop profile pwd_time cascade;
 
+--存储过程
+SHOW SERVEROUTPUT;
+SET SERVEROUTPUT ON;
+--无参
+CREATE PROCEDURE pro1
+AS
+BEGIN
+	DBMS_OUTPUT.PUT_LINE('hello world');
+END;
+/
+
+select * from user_source where name='PRO1';
+
+BEGIN
+pro1;
+END;
+/
+
+exec pro1;
+
+select * from student;
+select * from course;
+select * from sc;
+
+ALTER TABLE student modify(test varchar2(20) default 'none');
+alter table student drop (test);
+
+/*
+CREATE PROCEDURE pro_update
+AS
+BEGIN
+  UPDATE student SET test='pass' WHERE s_id IN(
+    SELECT s_id FROM student s JOIN sc USING(s_id) GROUP BY s_id HAVING AVG(grade) > 60
+  );
+END;
+/
+
+*/
+drop procedure pro_update;
+exec pro_update;
+select * from user_source where name='PRO_NAME';
+select s_id,avg(grade) from student s join sc using(s_id) group by s_id;
+
+desc student;
+--输入参数
+CREATE PROCEDURE PRO_NAME(arg_id IN NUMBER)
+AS
+  v_sname VARCHAR2(20);    --接收学生姓名
+BEGIN
+  SELECT s_name INTO v_sname FROM student WHERE s_id=arg_id; --把查询出来的值赋给变量 v_sname
+  DBMS_OUTPUT.put_line('student''s name is : ' || v_sname);
+END;
+/
+exec PRO_NAME(1001);
+
+--输出参数
+CREATE PROCEDURE PRO_NAME2(arg_id IN NUMBER,arg_name OUT VARCHAR2)
+AS
+BEGIN
+  SELECT s_name INTO arg_name FROM student WHERE s_id=arg_id;   --把查询出来的值赋给变量 v_sname
+END;
+/
+drop procedure pro_name2;
+exec PRO_NAME(1001);
+
+CREATE PROCEDURE PRO_GETNAME
+AS
+  v_name student.s_name%TYPE;   --接收学生姓名
+BEGIN
+  PRO_NAME2(1001,v_name);
+  DBMS_OUTPUT.put_line('student''s name is : ' || v_name);
+END;
+/
+exec pro_getname;
+drop procedure pro_getname;
+show errors procedure pro_getname;
+
+--输入输出
+CREATE PROCEDURE PRO_NAME3(arg_id_age IN OUT NUMBER)
+AS
+BEGIN
+  SELECT s_age INTO arg_id_age FROM student WHERE s_id=arg_id_age; 
+END;
+/
+
+CREATE PROCEDURE PRO_GETAGE
+AS
+  v_id_age student.s_age%TYPE;
+BEGIN
+  v_id_age:=1001;
+  PRO_NAME3(v_id_age);
+  DBMS_OUTPUT.put_line('student''s age is : ' || v_id_age);
+END;
+/  
+--drop procedure pro_getage;
+exec pro_getage;
+
+--DDL
+CREATE PROCEDURE PRO_GRADE
+AS
+BEGIN
+  EXECUTE IMMEDIATE 'CREATE VIEW view_grade AS select s_name,avg(grade) avg_grade from student join sc using(s_id) group by s_name order by s_name';
+  --erro--EXECUTE IMMEDIATE 'ALTER VIEW view_grade ADD(test VARCHAR2(20) DEFAULT ''none'')';
+  --erro--EXECUTE IMMEDIATE 'UPDATE view_grade SET test=''pass'' WHERE avg_grade > 70';
+END;
+/
+show errors procedure pro_grade;
+exec pro_grade;
+
+drop procedure pro_grade;
+select s_name,avg(grade) avg_grade from student join sc using(s_id) group by s_name order by s_name;
+select * from user_views;
+CREATE VIEW view_grade AS select s_name,avg(grade) avg_grade from student join sc using(s_id) group by s_name order by s_name;
+select * from view_grade;
+ALTER VIEW view_grade ADD(test VARCHAR2(20) DEFAULT 'none');
+
+drop view view_grade;
+
+create procedure pro_test
+as
+begin
+execute immediate 'create table tab_test (id number)';
+end;
+/
+exec pro_test;
+select * from user_tables where table_name='TAB_TEST';
+drop table tab_test;
+
+/*******start*******/
+drop procedure pro_grade;
+CREATE PROCEDURE PRO_GRADE
+AS
+BEGIN
+  EXECUTE IMMEDIATE 'CREATE TABLE stu_grade AS select s_name,avg(grade) avg_grade from student join sc using(s_id) group by s_name order by s_name';
+END;
+/
+exec pro_grade;
+select * from stu_grade;
+
+create procedure pro_grade_view 
+authid current_user as
+begin
+--用户拥有的角色 role 在存储过程中不可用，所以出现权限不足
+--grant create table to 
+execute immediate 'CREATE VIEW view_grade AS select s_name,avg(grade) avg_grade from student join sc using(s_id) group by s_name order by s_name';
+end;
+/
+drop table view_grade;
+drop procedure pro_grade_view;
+exec pro_grade_view;
+drop view view_grade;
