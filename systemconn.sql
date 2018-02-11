@@ -1,3 +1,5 @@
+select name,description from v$bgprocess;
+
 -- 查询默认表空间
 select tablespace_name from dba_tablespaces;
 -- 查询用户默认表空间
@@ -1543,4 +1545,109 @@ purge recyclebin;
 purge dba_recyclebin;
 drop table test purge;
 
+--sql优化
+show parameter optimizer_mode;
+select * from student;
+explain plan for SELECT sc.s_id, sc.c_id, s.s_name, sc.grade FROM sc INNER JOIN student s ON s.s_id=sc.s_id;
+select * from v$sql_plan;
+
+
+--存储优化
+select tablespace_name,extent_management,segment_space_management from dba_tablespaces where tablespace_name='SYLTP1';
+
+
+
+--性能诊断
+show parameter statistics_level;
+select snap_interval,retention from dba_hist_wr_control;
+execute dbms_workload_repository.modify_snaphshot_settings(-
+  retention => 43200,-
+  interval => 30)
+  
+select occupant_desc,space_usage_kbytes from v$sysaux_occupants where occupant_name='SM/AWR';
+select min(begin_interval_time),max(begin_interval_time),count(snap_id) from dba_hist_snapshot;
+select * from dba_hist_snapshot order by snap_id;
+desc dba_hist_snapshot;
+
+show parameter control_management;
+select statistics_name,session_status,system_status,activation_level,session_settable from v$statistics_level order by statistics_name;
+@D:\app\shiyanlou\virtual\product\12.2.0\dbhome_1\rdbms\admin\addmrpt.sql
+
+--警报
+select d.tablespace_name,sum(d.bytes) total,sum(f.bytes) free from dba_data_files d left outer join dba_free_space f on d.tablespace_name=f.tablespace_name group by d.tablespace_name;
+SELECT a.tablespace_name "表空间名", total "表空间大小", free "表空间剩余大小", (total - free) "表空间使用大小", 
+        total / (1024 * 1024 * 1024) "表空间大小(G)", free / (1024 * 1024 * 1024) "表空间剩余大小(G)", 
+        (total - free) / (1024 * 1024 * 1024) "表空间使用大小(G)", round((total - free) / total, 4) * 100 "使用率 %" 
+FROM (SELECT tablespace_name, SUM(bytes) free FROM dba_free_space GROUP BY tablespace_name) a, 
+        (SELECT tablespace_name, SUM(bytes) total FROM dba_data_files GROUP BY tablespace_name) b 
+            WHERE a.tablespace_name = b.tablespace_name ;
+SELECT SUM(bytes) / (1024 * 1024) as free_space, tablespace_name 
+    FROM dba_free_space 
+        GROUP BY tablespace_name; 
+SELECT a.tablespace_name, a.bytes total, b.bytes used, c.bytes free, (b.bytes * 100) / a.bytes "%USED", 
+    (c.bytes * 100) / a.bytes "%FREE"  FROM sys.sm$ts_avail a, sys.sm$ts_used b, sys.sm$ts_free c 
+    WHERE a.tablespace_name = b.tablespace_name  AND a.tablespace_name = c.tablespace_name; 
+    
+SELECT SUM(bytes) / (1024 * 1024) as free_space, tablespace_name 
+    FROM dba_free_space 
+        GROUP BY tablespace_name; 
+        
+select d.tablespace_name,sum(d.bytes)/1024/1024 "total(MB)",sum(f.bytes)/1024/1024 "free(MB)",round((sum(d.bytes) - sum(f.bytes))/sum(d.bytes),4)*100 "Used(%)" 
+from dba_data_files d left outer join dba_free_space f on d.tablespace_name=f.tablespace_name group by d.tablespace_name;
+create tablespace alert datafile 'alert.dbf' size 1M;
+drop tablespace alert including contents and datafiles;
+select name from v$datafile;
+create tablespace alerttest datafile 'alerttest.dbf' size 1M;
+desc dbms_server_alert;
+--指标
+select * from v$metricname;
+execute DBMS_SERVER_ALERT.SET_THRESHOLD(-
+  metrics_id => DBMS_SERVER_ALERT.TABLESPACE_PCT_FULL,-
+  warning_operator => DBMS_SERVER_ALERT.OPERATOR_GT,-
+  warning_value => '70',-
+  critical_operator => DBMS_SERVER_ALERT.OPERATOR_GT,-
+  critical_value => '80',-
+  observation_period => 1,-
+  consecutive_occurrences => 1,-
+  instance_name => NULL,-
+  object_type => DBMS_SERVER_ALERT.OBJECT_TYPE_TABLESPACE,-
+  object_name => 'ALERTTEST')
+  
+create table alerttable (id number) tablespace alerttest;
+alter table alerttable allocate extent;
+select * from dba_thresholds where object_name='ALERTTEST';
+alter tablespace alerttest add datafile 'alert2.dbf' size 1M;
+
+select * from dba_outstanding_alerts;
+select * from dba_alert_history;
+
+select * from v$active_session_history;
+
+--作业自动化
+desc dbms_scheduler;
+BEGIN
+DBMS_SCHEDULER.CREATE_JOB(
+	job_name => 'BACKUP_SYSTEM',
+    job_type => 'EXECUTABLE',
+    job_action => '/home/oracle/backup_system.sh',
+    repeat_interval => 'FREQ=WEEKLY;BYDAY=FRI;BYHOUR=4',
+    start_date => to_date('04-03-2018','dd-mm-yyyy'),
+    job_class => '"DEFAULT_JOB_CLASS"',
+    auto_drop => FALSE,
+    comments => 'backup system tablespace',
+    enabled => TRUE
+);
+END;
+/
+select job_name,last_start_date,last_run_duration,next_run_date,repeat_interval from dba_scheduler_jobs;
+select * from dba_scheduler_jobs where job_name='BACKUP_SYSTEM';
+select job_name,log_date,operation,status from dba_scheduler_job_log;
+select job_name,log_date,operation,status from dba_scheduler_job_log where job_name='BACKUP_SYSTEM';
+exec dbms_scheduler.set_scheduler_attribute('log_history',15);
+exec DBMS_SCHEDULER.set_attribute(-
+	name => 'BACKUP_SYSTEM',-
+    attribute => 'repeat_interval',-
+    value => 'FREQ=DAILY'
+);
+exec DBMS_SCHEDULER.stop_job(job_name='BACKUP_SYSTEM');
 
