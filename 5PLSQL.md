@@ -243,8 +243,7 @@ DECLARE
   v_a VARCHAR2(20) := 'this is global';    --全局变量
   v_b VARCHAR2(20) := 'this is second global';
 BEGIN
-  DECLARE
-    v_a VARCHAR2(20) := 'this is inner';   --内部变量
+  DECLARE v_a VARCHAR2(20) := 'this is inner';   --内部变量
   BEGIN
     DBMS_OUTPUT.put_line(v_a);
     DBMS_OUTPUT.put_line(v_b);
