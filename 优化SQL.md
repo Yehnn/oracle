@@ -75,7 +75,7 @@ explain autotrace
 
 explain 没有真正执行。
 
-测试表：
+测试表：	
 
 ```sql
 drop table sc;
@@ -277,8 +277,6 @@ PK_SID	     NORMAL	STUDENT
 
 ![图片描述](https://dn-simplecloud.shiyanlou.com/uid/8797/1519962987476.png-wm)
 
-
-
 ## 追踪 SQL：
 
 ### 使用 sql trace： 
@@ -341,7 +339,7 @@ VALUE
 /u01/app/oracle/diag/rdbms/xe/xe/trace/xe_ora_515.trc
 ```
 
-### 使用 TKPROF 转换跟踪文件格式：
+### 使用 TKPROF 转换跟踪文件格式
 
 虽然可以直接打开跟踪文件查看，但使用了 TKPROF 转换格式后查看更易阅读。
 
@@ -401,8 +399,6 @@ Elapsed times include waiting on following events:
 从统计信息中可以看出物理读取（disk 列）为 18，总读取数量（query 列）为 92，内存读取是总读取数减去物理读取数（92-18），也就是 74。当物理读取数过高时，我们就需要考虑优化该条 SQL 语句了。
 
 更多有关 TKPROF 内容可参考 [Guidelines for Interpreting TKPROF Output](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/tgsql/performing-application-tracing.html#GUID-A92E180C-8F2C-4864-ABFC-8439CEFFE368) 和 [Generating Output Files Using SQL Trace and TKPROF](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/tgsql/performing-application-tracing.html#GUID-045E1093-E389-4F2A-94CB-820AF356C564) 。
-
-
 
 
 
