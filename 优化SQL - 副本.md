@@ -503,6 +503,8 @@ HAVING SUM(grade) >1000;
 
 格式优化过后，查看起来更易阅读，并且有助于后期维护。
 
+想了解更多有关 SQL 优化的内容可参考 [SQL Tuning Guide](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/tgsql/toc.htm) 。
+
 ## 总结
 
 - 追踪 SQL
