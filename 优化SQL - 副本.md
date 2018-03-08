@@ -179,6 +179,7 @@ VALUE
 在 bash 命令行输入如下命令：
 
 ```bash
+$ cd /u01/app/oracle/diag/rdbms/xe/xe/trace
 $ tkprof xe_ora_1539.trc myid.prf explain=sys/Syl12345
 
 TKPROF: Release 12.1.0.2.0 - Development on Fri Mar 2 15:22:59 2018
